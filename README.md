@@ -1,4 +1,106 @@
-# Kong internal API platform (self-managed)
+# Kong Secure API Platform (Kubernetes-Native, Defense-in-Depth)
+## Executive Summary
+
+The Secure API Platform is a self-managed, Kubernetes-native API gateway architecture built using Kong OSS (DB-less mode), FastAPI, and NGINX.
+
+It demonstrates layered security enforcement, production-style deployment patterns, and infrastructure-as-code practices suitable for internal enterprise API platforms.
+
+The platform implements:
+
+- JWT-based authenticatio
+- IP allow-listing
+- Rate limiting (13 requests per minute per IP)
+- Optional NGINX-based DDoS mitigation layer
+- Kubernetes-native deployment (raw manifests + Helm)
+- Infrastructure provisioning via Terraform
+
+This project showcases secure API gateway design, operational readiness, and DevOps maturity.
+
+Architecture Overview
+High-Level Traffic Flow
+```
+Client
+   ↓
+NGINX DDoS Proxy (Edge Protection Layer)
+   ↓
+Kong Gateway (API Control Layer)
+   ↓
+Auth Service (Application Layer)
+```
+
+### Edge Layer (NGINX)
+
+- Connection limiting (`limit_conn`)
+- Request rate limiting (`limit_req`)
+- Early-stage traffic filtering
+
+---
+
+### Gateway Layer (Kong)
+
+- JWT enforcement (protected endpoints)
+- Global rate limiting (**13 requests per minute per IP**)
+- IP allow-listing (CIDR-based)
+- Custom Lua header injection & structured logging
+
+---
+
+### Application Layer (FastAPI)
+
+- JWT token issuance
+- User authentication logic
+- SQLite-backed persistence
+
+---
+
+## Core Features
+
+- Kong OSS (DB-less mode)
+- FastAPI Auth Service
+- Optional NGINX DDoS proxy
+- Kubernetes-native deployment
+- Helm chart support
+- Terraform namespace + network policy provisioning
+- Postman collection included
+- Built-in test console UI (`console.html`)
+
+---
+
+## Security Controls
+
+### Authentication
+
+- JWT enforced on `GET /users`
+- Public endpoints:
+  - `GET /health`
+  - `GET /verify`
+- JWT secrets stored in Kubernetes Secrets
+
+---
+
+### Rate Limiting
+
+- 13 requests per minute per IP
+- Enforced at Kong level
+- Configurable via:
+  - Helm values
+  - Kong configmap
+
+---
+
+### IP Allow-Listing
+
+- CIDR-based IP restriction plugin
+- Configurable in `k8s/kong/configmap.yaml`
+- Optional Kubernetes NetworkPolicy enforcement
+
+---
+
+### DDoS Mitigation (Optional)
+
+- NGINX edge proxy
+- `limit_req` and `limit_conn`
+- Prevents gateway exhaustion
 
 ## What is included
 - Kong OSS in DB-less mode with JWT auth, rate limiting, IP allow-listing, and custom Lua logic.
