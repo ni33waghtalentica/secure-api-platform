@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.nginx.configmap.name }}
+data:
+  ddos.conf: |
+    limit_conn_zone $binary_remote_addr zone=addr:10m;
+    limit_req_zone $binary_remote_addr zone=req:10m rate={{ .Values.nginx.limits.req }}r/s;
+
+    server {
+      listen 8080;
+
+      limit_conn addr {{ .Values.nginx.limits.conn }};
+      limit_req zone=req burst={{ .Values.nginx.limits.burst }}{{ if .Values.nginx.limits.nodelay }} nodelay{{ end }};
+
+      location / {
+        proxy_pass http://kong:8000;
+      }
+    }

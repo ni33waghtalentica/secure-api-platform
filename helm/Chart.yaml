@@ -1,0 +1,17 @@
+apiVersion: v2
+name: kong-api-platform
+version: 0.1.0
+description: Helm chart for Kong API Gateway, FastAPI auth-service, and NGINX DDoS proxy on Minikube
+keywords:
+  - kong
+  - fastapi
+  - nginx
+  - minikube
+  - api-gateway
+  - jwt
+  - sqlite
+  - ddos
+  - pvc
+maintainers:
+  - name: kumarmangalamm
+    email: kumarmangalam.Mishra@talentica.com

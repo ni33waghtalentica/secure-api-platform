@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kong-lua-scripts
+  labels:
+    app: kong
+    chart: kong-api-platform
+    managed-by: Helm
+data:
+  custom-header.lua: |
+    -- Inject custom header and log request
+    kong.log.info("[LUA] Injecting custom header and logging request")
+    kong.service.request.set_header("X-Custom-Injected", "true")
+    kong.log.inspect({
+      method = kong.request.get_method(),
+      path = kong.request.get_path(),
+      ip = kong.client.get_ip(),
+      headers = kong.request.get_headers(),
+    })

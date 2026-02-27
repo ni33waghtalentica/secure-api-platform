@@ -1,0 +1,44 @@
+kong:
+  image: kong:3.6
+  service:
+    type: ClusterIP
+    port: 8000
+  configmap:
+    enabled: true
+    name: kong-config
+    mountPath: /kong/declarative
+    fileName: kong.yaml
+
+authService:
+  image: kumarmangalamm/auth-service:latest
+  pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8000
+  pvc:
+    enabled: true
+    storage: 1Gi
+    mountPath: /data
+  env:
+    JWT_KEY: local-dev-key
+    JWT_SECRET: local-dev-secret
+    DB_PATH: /data/app.db
+    SEED_USER: admin
+    SEED_USER_PASSWORD: admin123
+
+nginx:
+  image: nginx:1.25
+  pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8080
+  configmap:
+    enabled: true
+    name: nginx-config
+    mountPath: /etc/nginx/conf.d
+    fileName: ddos.conf
+  limits:
+    conn: 10
+    req: 5
+    burst: 10
+    nodelay: false

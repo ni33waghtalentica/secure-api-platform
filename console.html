@@ -1,0 +1,869 @@
+    <!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nitin's Kong API Platform — Test Console</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --success: #10b981;
+      --error: #ef4444;
+      --warning: #f59e0b;
+      --bg: #0f172a;
+      --bg-secondary: #1e293b;
+      --card: #1e293b;
+      --border: #334155;
+      --text: #f1f5f9;
+      --text-muted: #cbd5e1;
+      --text-dim: #94a3b8;
+      --code-bg: #0f172a;
+      --shadow: 0 4px 6px rgba(0,0,0,0.3), 0 10px 20px rgba(0,0,0,0.2);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, var(--bg) 0%, var(--bg-secondary) 100%);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 32px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    header h1 {
+      font-size: 24px;
+      font-weight: 700;
+      margin: 0;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      background: linear-gradient(120deg, #60a5fa, #34d399);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    header .meta {
+      font-size: 13px;
+      color: var(--text-dim);
+    }
+
+    .header-status {
+      display: inline-block;
+      padding: 4px 12px;
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid var(--success);
+      border-radius: 6px;
+      font-size: 12px;
+      color: var(--success);
+      font-weight: 500;
+    }
+
+    .grid { display: grid; grid-template-columns: 280px 1fr; gap: 24px; }
+
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: var(--shadow);
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+
+    .panel:hover { border-color: var(--primary); }
+
+    .nav { list-style: none; margin: 0; padding: 0; }
+    .nav a {
+      display: block;
+      padding: 10px 12px;
+      color: var(--text-muted);
+      text-decoration: none;
+      border-radius: 8px;
+      margin-bottom: 6px;
+      transition: all 0.2s;
+      border-left: 3px solid transparent;
+    }
+
+    .nav a:hover {
+      background: rgba(37, 99, 235, 0.15);
+      color: var(--primary);
+      border-left-color: var(--primary);
+    }
+
+    .section { margin-bottom: 20px; }
+    .section:last-child { margin-bottom: 0; }
+
+    .card-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: var(--text);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .small { font-size: 12px; color: var(--text-dim); }
+
+    .row { display: flex; gap: 12px; align-items: flex-end; }
+    .row > div { flex: 1; }
+    .row > div.fixed { flex: 0 0 auto; }
+
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    input[type=text], input[type=password], textarea {
+      width: 100%;
+      padding: 10px 12px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+      font-size: 13px;
+      transition: border-color 0.3s;
+    }
+
+    input[type=text]:focus, input[type=password]:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    .btn-row { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+
+    button {
+      padding: 10px 16px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    button:hover { background: var(--primary-hover); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); }
+    button:active { transform: translateY(0); }
+
+    button.secondary { background: var(--bg-secondary); border: 1px solid var(--border); color: var(--text-muted); }
+    button.secondary:hover { background: rgba(37, 99, 235, 0.15); color: var(--primary); border-color: var(--primary); }
+
+    button.copy-btn { padding: 6px 10px; font-size: 12px; }
+
+    .token-box {
+      background: var(--bg);
+      border: 1px dashed var(--primary);
+      padding: 12px;
+      border-radius: 8px;
+      font-family: monospace;
+      word-break: break-all;
+      font-size: 11px;
+      color: var(--text-dim);
+      max-height: 120px;
+      overflow-y: auto;
+    }
+
+    .response {
+      margin-top: 16px;
+      padding: 16px;
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      display: none;
+    }
+
+    .response.show { display: block; animation: slideIn 0.2s ease; }
+
+    @keyframes slideIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+    .response-status {
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      padding: 8px 12px;
+      background: rgba(37, 99, 235, 0.15);
+      border-left: 3px solid var(--primary);
+      border-radius: 4px;
+      color: var(--primary);
+    }
+
+    .response-status.ok { background: rgba(16, 185, 129, 0.15); border-left-color: var(--success); color: var(--success); }
+    .response-status.error { background: rgba(239, 68, 68, 0.15); border-left-color: var(--error); color: var(--error); }
+
+    pre {
+      background: var(--code-bg);
+      color: #e0e7ff;
+      padding: 12px;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-size: 12px;
+      font-family: monospace;
+      line-height: 1.5;
+      margin: 0;
+    }
+
+    main { display: flex; flex-direction: column; gap: 24px; }
+
+    .endpoint-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .method-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      background: rgba(37, 99, 235, 0.2);
+      color: #60a5fa;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .endpoint-path {
+      font-family: monospace;
+      font-size: 14px;
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      background: rgba(16, 185, 129, 0.2);
+      color: var(--success);
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    .sidebar-info {
+      background: rgba(37, 99, 235, 0.1);
+      border: 1px solid rgba(37, 99, 235, 0.2);
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 12px;
+      line-height: 1.6;
+      color: var(--text-muted);
+    }
+
+    @media (max-width: 880px) {
+      .grid { grid-template-columns: 1fr; }
+      header { flex-direction: column; align-items: flex-start; gap: 12px; }
+      header h1 { font-size: 18px; }
+      .row { flex-direction: column; }
+      .row > div { width: 100%; }
+    }
+
+    /* light theme override */
+    body.light-theme {
+      --bg: #f9fafb;
+      --bg-secondary: #e5e7eb;
+      --card: #ffffff;
+      --border: #d1d5db;
+      --text: #111827;
+      --text-muted: #6b7280;
+      --text-dim: #4b5563;
+      --code-bg: #e5e7eb;
+    }
+  </style>
+</head>
+    <body>
+      <div class="container">
+        <header>
+          <h1>Nitin's 🦍 Kong API Platform — Test Console</h1>
+          <div style="text-align: right;">
+            <div class="meta">Secure API Gateway • Rate Limit: 13/min</div>
+            <div id="rate-info" class="meta" style="margin-top:4px;font-size:11px;"></div>
+            <div class="header-status" style="margin-top: 6px;">🟢 Live</div>
+          </div>
+        </header>
+
+        <div class="grid">
+          <!-- SIDEBAR -->
+          <aside class="panel">
+            <div class="card-title">Navigation</div>
+            <nav class="nav">
+              <a href="#health">📊 Health Check</a>
+              <a href="#verify">✓ Token Verify</a>
+              <a href="#login">🔐 Login</a>
+              <a href="#users">👥 Users List</a>
+              <a href="#create">➕ Create User</a>
+            </nav>
+
+            <div class="section">
+              <div class="card-title">API Configuration</div>
+              <label>API Base URL</label>
+              <div class="row">
+                <input id="api-base" type="text" value="http://localhost:8000" style="flex: 1;" />
+                <button onclick="setApiBase()" style="flex: 0 0 auto;">Update</button>
+              </div>
+              <div class="small" style="margin-top: 8px;">e.g. http://localhost:8000</div>
+            </div>
+
+            <div class="section">
+              <div class="card-title">Current Token</div>
+              <div id="stored-token" class="token-box">No token stored</div>
+              <div class="btn-row">
+                <button class="secondary copy-btn" onclick="copyToken()">📋 Copy</button>
+                <button class="secondary copy-btn" onclick="clearToken()">🗑️ Clear</button>
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="card-title">Profiles</div>
+              <label>Name</label>
+              <div class="row">
+                <input id="profile-name" type="text" placeholder="e.g. local" />
+                <button onclick="saveProfile()" style="flex:0 0 auto;">💾 Save</button>
+              </div>
+              <div class="row" style="margin-top:8px;">
+                <select id="profile-select" style="flex:1;"></select>
+                <button onclick="loadProfile()" style="flex:0 0 auto;">🔁 Load</button>
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="card-title">Extra Headers</div>
+              <textarea id="extra-headers" placeholder='{"X-Demo":"true"}' rows="3" style="width:100%;" onchange="updateExtraHeaders()"></textarea>
+            </div>
+
+            <div class="section">
+              <div class="card-title">JWT Inspector</div>
+              <button onclick="decodeJWT()">🔓 Decode Token</button>
+              <pre id="jwt-inspect" style="margin-top:8px;"></pre>
+            </div>
+
+            <div class="section">
+              <div class="card-title">Theme</div>
+              <button onclick="toggleTheme()">🌓 Toggle</button>
+            </div> 
+
+            <div class="sidebar-info">
+              <strong>💡 Tip:</strong> Login first, then create new users. All tokens are stored in browser localStorage.
+            </div>
+          </aside>
+
+          <!-- MAIN CONTENT -->
+          <main>
+            <!-- 1. HEALTH -->
+            <section id="health" class="panel">
+              <div class="endpoint-header">
+                <span class="method-badge">GET</span>
+                <span class="endpoint-path">/health</span>
+                <span class="status-badge">No Auth</span>
+              </div>
+              <div class="small">Server health check for monitoring</div>
+              <div class="btn-row">
+                <button onclick="testHealth()">🧪 Test Endpoint</button>
+              </div>
+              <div id="health-response" class="response">
+                <div class="response-status" id="health-status"></div>
+                <pre id="health-body"></pre>
+                <button class="copy-btn" style="margin-top: 8px;" onclick="copyResponse('health-body')">📋 Copy Response</button>
+              </div>
+            </section>
+
+            <!-- 2. VERIFY -->
+            <section id="verify" class="panel">
+              <div class="endpoint-header">
+                <span class="method-badge">GET</span>
+                <span class="endpoint-path">/verify</span>
+                <span class="status-badge">Optional</span>
+              </div>
+              <div class="small">Validate JWT token or check status without auth</div>
+              <div class="btn-row">
+                <button onclick="testVerify(false)">🔍 Without Token</button>
+                <button onclick="testVerify(true)">🔍 With Token</button>
+              </div>
+              <div id="verify-response" class="response">
+                <div class="response-status" id="verify-status"></div>
+                <pre id="verify-body"></pre>
+                <button class="copy-btn" style="margin-top: 8px;" onclick="copyResponse('verify-body')">📋 Copy Response</button>
+              </div>
+            </section>
+
+            <!-- 3. LOGIN -->
+            <section id="login" class="panel">
+              <div class="endpoint-header">
+                <span class="method-badge">POST</span>
+                <span class="endpoint-path">/login</span>
+                <span class="status-badge">No Auth</span>
+              </div>
+              <div class="small">Authenticate with username & password, receive JWT token (60 min validity)</div>
+              <div class="row">
+                <div>
+                  <label>Username</label>
+                  <input id="login-username" type="text" value="admin" />
+                </div>
+                <div class="fixed" style="width: 160px;">
+                  <label>Password</label>
+                  <input id="login-password" type="password" value="admin123" />
+                </div>
+              </div>
+              <div class="btn-row">
+                <button onclick="testLogin()">🔓 Login & Store Token</button>
+                <button class="secondary" onclick="testLoginWrong()">❌ Test Wrong Password</button>
+              </div>
+              <div id="login-response" class="response">
+                <div class="response-status" id="login-status"></div>
+                <pre id="login-body"></pre>
+                <button class="copy-btn" style="margin-top: 8px;" onclick="copyResponse('login-body')">📋 Copy Response</button>
+              </div>
+            </section>
+
+            <!-- 4. USERS -->
+            <section id="users" class="panel">
+              <div class="endpoint-header">
+                <span class="method-badge">GET</span>
+                <span class="endpoint-path">/users</span>
+                <span class="status-badge">JWT Required</span>
+              </div>
+              <div class="small">List all users in database. Requires valid JWT token</div>
+              <div class="btn-row">
+                <button onclick="testUsers(true)">👥 Fetch Users (with token)</button>
+                <button class="secondary" onclick="testUsers(false)">⚠️ Without Token (expect error)</button>
+              </div>
+              <div id="users-response" class="response">
+                <div class="response-status" id="users-status"></div>
+                <pre id="users-body"></pre>
+                <button class="copy-btn" style="margin-top: 8px;" onclick="copyResponse('users-body')">📋 Copy Response</button>
+              </div>
+            </section>
+
+            <!-- 5. CREATE USER -->
+            <section id="create" class="panel">
+              <div class="endpoint-header">
+                <span class="method-badge">POST</span>
+                <span class="endpoint-path">/users</span>
+                <span class="status-badge">JWT Required</span>
+              </div>
+              <div class="small">Create new user (admin-only). Auto-login as new user after creation</div>
+              <div class="row">
+                <div>
+                  <label>New Username</label>
+                  <input id="create-username" type="text" value="user1" />
+                </div>
+                <div class="fixed" style="width: 160px;">
+                  <label>Password</label>
+                  <input id="create-password" type="password" value="userpass" />
+                </div>
+              </div>
+              <div class="btn-row">
+                <button onclick="testCreateUserAndLogin()">➕ Create & Auto-Login</button>
+              </div>
+              <div id="createuser-response" class="response">
+                <div class="response-status" id="createuser-status"></div>
+                <pre id="createuser-body"></pre>
+                <button class="copy-btn" style="margin-top: 8px;" onclick="copyResponse('createuser-body')">📋 Copy Response</button>
+              </div>
+            </section>
+
+            <!-- 6. HISTORY -->
+            <section id="history" class="panel">
+              <div class="endpoint-header">
+                <span class="method-badge">LOG</span>
+                <span class="endpoint-path">Request History</span>
+              </div>
+              <div class="btn-row">
+                <button onclick="showHistory()">📜 Show History</button>
+                <button class="secondary" onclick="clearHistory()">🗑️ Clear History</button>
+              </div>
+              <ul id="history-list" style="margin-top:16px;max-height:200px;overflow-y:auto;"></ul>
+            </section>
+
+          </main>
+        </div>
+      </div>
+
+      <script>
+        let API_BASE = localStorage.getItem('api_base') || 'http://localhost:8000';
+        let storedToken = localStorage.getItem('jwt_token') || '';
+
+        function setApiBase() {
+          const val = document.getElementById('api-base').value.trim();
+          if (!val) return alert('Enter valid API base URL');
+          API_BASE = val;
+          localStorage.setItem('api_base', val);
+          alert('✅ API base updated to: ' + val);
+          updateTokenDisplay();
+        }
+
+        function updateTokenDisplay() {
+          const el = document.getElementById('stored-token');
+          if (storedToken) {
+            const preview = storedToken.substring(0, 60) + '...';
+            el.textContent = preview;
+            el.title = storedToken;
+          } else {
+            el.textContent = 'No token stored';
+          }
+        }
+
+        function storeToken(token) {
+          storedToken = token;
+          localStorage.setItem('jwt_token', token);
+          updateTokenDisplay();
+        }
+
+        function clearToken() {
+          storedToken = '';
+          localStorage.removeItem('jwt_token');
+          updateTokenDisplay();
+          alert('✅ Token cleared');
+        }
+
+        function copyToken() {
+          if (!storedToken) return alert('❌ No token to copy');
+          navigator.clipboard.writeText(storedToken).then(() => {
+            alert('✅ Token copied to clipboard');
+          }).catch(() => {
+            alert('⚠️ Failed to copy token');
+          });
+        }
+
+        function copyResponse(elementId) {
+          const text = document.getElementById(elementId).textContent;
+          navigator.clipboard.writeText(text).then(() => {
+            alert('✅ Response copied to clipboard');
+          }).catch(() => {
+            alert('⚠️ Failed to copy response');
+          });
+        }
+
+        function showResponse(prefix, statusText, body, ok, headers) {
+          const responseEl = document.getElementById(prefix + '-response');
+          const statusEl = document.getElementById(prefix + '-status');
+          const bodyEl = document.getElementById(prefix + '-body');
+
+          responseEl.classList.add('show');
+          statusEl.textContent = statusText;
+          statusEl.className = 'response-status ' + (ok ? 'ok' : 'error');
+          bodyEl.textContent = typeof body === 'string' ? body : JSON.stringify(body, null, 2);
+
+          if (headers) {
+            const rate = headers.get('x-ratelimit-remaining');
+            const reset = headers.get('x-ratelimit-reset');
+            if (rate !== null) {
+              document.getElementById('rate-info').textContent = `Remaining: ${rate}  Reset: ${reset}`;
+            }
+          }
+        }
+
+        async function testHealth() {
+          try {
+            const headers = {};
+            applyExtraHeaders(headers);
+            const res = await fetch(API_BASE + '/health', { headers });
+            const data = await res.json();
+            const status = res.status + ' ' + res.statusText + ' ✓';
+            showResponse('health', status, data, res.ok, res.headers);
+            logRequest({method:'GET',path:'/health',status:res.status,func:'testHealth',args:[]});
+          } catch (e) {
+            showResponse('health', '❌ Error: ' + e.message, e.message, false);
+            logRequest({method:'GET',path:'/health',status:'error',func:'testHealth',args:[]});
+          }
+        }
+
+        async function testVerify(withToken) {
+          try {
+            const headers = {};
+            applyExtraHeaders(headers);
+            if (withToken && storedToken) {
+              headers['Authorization'] = 'Bearer ' + storedToken;
+            }
+            const res = await fetch(API_BASE + '/verify', { headers });
+            const data = await res.json();
+            const status = res.status + ' ' + res.statusText + ' ✓';
+            showResponse('verify', status, data, res.ok, res.headers);
+            logRequest({method:'GET',path:'/verify',status:res.status,func:'testVerify',args:[withToken]});
+          } catch (e) {
+            showResponse('verify', '❌ Error: ' + e.message, e.message, false);
+            logRequest({method:'GET',path:'/verify',status:'error',func:'testVerify',args:[withToken]});
+          }
+        }
+
+        async function testLogin() {
+          const username = document.getElementById('login-username').value;
+          const password = document.getElementById('login-password').value;
+
+          if (!username || !password) {
+            showResponse('login', '⚠️ Enter username and password', {}, false);
+            return;
+          }
+
+          try {
+            const headers = {'Content-Type':'application/json'};
+            applyExtraHeaders(headers);
+            const res = await fetch(API_BASE + '/login', {
+              method: 'POST',
+              headers,
+              body: JSON.stringify({ username, password })
+            });
+            const data = await res.json();
+            const status = res.status + ' ' + res.statusText + (res.ok ? ' ✓' : ' ❌');
+            showResponse('login', status, data, res.ok, res.headers);
+            logRequest({method:'POST',path:'/login',status:res.status,func:'testLogin',args:[]});
+
+            if (res.ok && data.access_token) {
+              storeToken(data.access_token);
+              alert('✅ Token stored successfully (60 min validity)');
+            }
+          } catch (e) {
+            showResponse('login', '❌ Error: ' + e.message, e.message, false);
+            logRequest({method:'POST',path:'/login',status:'error',func:'testLogin',args:[]});
+          }
+        }
+
+        async function testLoginWrong() {
+          try {
+            const headers = {'Content-Type':'application/json'};
+            applyExtraHeaders(headers);
+            const res = await fetch(API_BASE + '/login', {
+              method: 'POST',
+              headers,
+              body: JSON.stringify({ username: 'admin', password: 'wrongpassword' })
+            });
+            const data = await res.json();
+            const status = res.status + ' ' + res.statusText;
+            showResponse('login', status, data, res.ok, res.headers);
+            logRequest({method:'POST',path:'/login',status:res.status,func:'testLoginWrong',args:[]});
+          } catch (e) {
+            showResponse('login', '❌ Error: ' + e.message, e.message, false);
+            logRequest({method:'POST',path:'/login',status:'error',func:'testLoginWrong',args:[]});
+          }
+        }
+
+        async function testUsers(withToken) {
+          try {
+            const headers = {};
+            applyExtraHeaders(headers);
+            if (withToken && storedToken) {
+              headers['Authorization'] = 'Bearer ' + storedToken;
+            }
+            const res = await fetch(API_BASE + '/users', { headers });
+            const data = await res.json();
+            const status = res.status + ' ' + res.statusText + (res.ok ? ' ✓' : ' ❌');
+            showResponse('users', status, data, res.ok, res.headers);
+            logRequest({method:'GET',path:'/users',status:res.status,func:'testUsers',args:[withToken]});
+          } catch (e) {
+            showResponse('users', '❌ Error: ' + e.message, e.message, false);
+            logRequest({method:'GET',path:'/users',status:'error',func:'testUsers',args:[withToken]});
+          }
+        }
+
+        async function testCreateUserAndLogin() {
+          const username = document.getElementById('create-username').value;
+          const password = document.getElementById('create-password').value;
+
+          if (!username || !password) {
+            showResponse('createuser', '⚠️ Enter username and password', {}, false);
+            return;
+          }
+
+          if (!storedToken) {
+            showResponse('createuser', '❌ Login as admin first', {}, false);
+            return;
+          }
+
+          try {
+            // Verify token is from admin
+            const verifyHeaders = {};
+            applyExtraHeaders(verifyHeaders);
+            verifyHeaders['Authorization'] = 'Bearer ' + storedToken;
+            const verifyRes = await fetch(API_BASE + '/verify', {
+              headers: verifyHeaders
+            });
+            const verifyData = await verifyRes.json();
+
+            if (!verifyRes.ok || verifyData.subject !== 'admin') {
+              showResponse('createuser', '❌ Admin token required', {}, false);
+              return;
+            }
+
+            // Create user
+            const headers = {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ' + storedToken
+            };
+            applyExtraHeaders(headers);
+            const res = await fetch(API_BASE + '/users', {
+              method: 'POST',
+              headers,
+              body: JSON.stringify({ username, password })
+            });
+            const data = await res.json();
+
+            if (!res.ok) {
+              const status = res.status + ' ' + res.statusText;
+              showResponse('createuser', status, data, false, res.headers);
+              logRequest({method:'POST',path:'/users',status:res.status,func:'testCreateUserAndLogin',args:[]});
+              return;
+            }
+
+            // Login as new user
+            const loginHeaders = {'Content-Type':'application/json'};
+            applyExtraHeaders(loginHeaders);
+            const loginRes = await fetch(API_BASE + '/login', {
+              method: 'POST',
+              headers: loginHeaders,
+              body: JSON.stringify({ username, password })
+            });
+            const loginData = await loginRes.json();
+
+            if (loginRes.ok && loginData.access_token) {
+              storeToken(loginData.access_token);
+              showResponse('createuser', '✓ User created & auto-logged in', loginData, true, loginRes.headers);
+              alert('✅ New user created and logged in!');
+              logRequest({method:'POST',path:'/users',status:loginRes.status,func:'testCreateUserAndLogin',args:[]});
+            } else {
+              showResponse('createuser', 'User created but login failed', loginData, false, loginRes.headers);
+              logRequest({method:'POST',path:'/users',status:loginRes.status,func:'testCreateUserAndLogin',args:[]});
+            }
+          } catch (e) {
+            showResponse('createuser', '❌ Error: ' + e.message, e.message, false);
+            logRequest({method:'POST',path:'/users',status:'error',func:'testCreateUserAndLogin',args:[]});
+          }
+        }
+
+        // helper libraries
+        let extraHeaders = {};
+        let requestHistory = JSON.parse(localStorage.getItem('req_history')||'[]');
+
+        function applyExtraHeaders(headers) {
+          Object.assign(headers, extraHeaders);
+        }
+
+        function updateExtraHeaders() {
+          try {
+            extraHeaders = JSON.parse(document.getElementById('extra-headers').value || '{}');
+            localStorage.setItem('extra_headers', document.getElementById('extra-headers').value);
+          } catch (e) {
+            alert('Invalid JSON in headers');
+          }
+        }
+
+        function logRequest(entry) {
+          requestHistory.unshift(entry);
+          if (requestHistory.length > 50) requestHistory.pop();
+          localStorage.setItem('req_history', JSON.stringify(requestHistory));
+        }
+
+        function showHistory() {
+          const list = document.getElementById('history-list');
+          list.innerHTML = '';
+          requestHistory.forEach((e, i) => {
+            const li = document.createElement('li');
+            li.innerHTML = `<strong>${e.method} ${e.path}</strong> ${e.status} <button onclick="replay(${i})">↻</button>`;
+            list.appendChild(li);
+          });
+        }
+
+        function clearHistory() {
+          requestHistory = [];
+          localStorage.removeItem('req_history');
+          showHistory();
+        }
+
+        function replay(idx) {
+          const e = requestHistory[idx];
+          if (!e) return;
+          const fn = window[e.func];
+          if (typeof fn === 'function') {
+            fn.apply(null, e.args || []);
+          } else {
+            alert('Cannot replay this entry');
+          }
+        }
+
+        function decodeJWT() {
+          if (!storedToken) return alert('No token to decode');
+          const parts = storedToken.split('.');
+          if (parts.length !== 3) return alert('Invalid JWT');
+          try {
+            const pl = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+            document.getElementById('jwt-inspect').textContent = JSON.stringify(pl, null, 2);
+          } catch (e) {
+            alert('Failed to decode token');
+          }
+        }
+
+        function loadProfiles() {
+          const ps = JSON.parse(localStorage.getItem('api_profiles') || '{}');
+          const sel = document.getElementById('profile-select');
+          sel.innerHTML = '';
+          Object.keys(ps).forEach(name => {
+            const opt = document.createElement('option');
+            opt.value = name;
+            opt.textContent = name + ' → ' + ps[name];
+            sel.appendChild(opt);
+          });
+        }
+
+        function saveProfile() {
+          const name = document.getElementById('profile-name').value.trim();
+          if (!name) return alert('Enter profile name');
+          const url = document.getElementById('api-base').value.trim();
+          const ps = JSON.parse(localStorage.getItem('api_profiles') || '{}');
+          ps[name] = url;
+          localStorage.setItem('api_profiles', JSON.stringify(ps));
+          loadProfiles();
+          alert('✅ Profile saved');
+        }
+
+        function loadProfile() {
+          const sel = document.getElementById('profile-select');
+          if (!sel.value) return;
+          const ps = JSON.parse(localStorage.getItem('api_profiles') || '{}');
+          const url = ps[sel.value];
+          if (url) {
+            document.getElementById('api-base').value = url;
+            setApiBase();
+          }
+        }
+
+        function toggleTheme() {
+          document.body.classList.toggle('light-theme');
+          const t = document.body.classList.contains('light-theme') ? 'light' : 'dark';
+          localStorage.setItem('theme', t);
+        }
+
+        function loadTheme() {
+          const t = localStorage.getItem('theme') || 'dark';
+          if (t === 'light') document.body.classList.add('light-theme');
+        }
+
+        // Initialize
+        updateTokenDisplay();
+        loadProfiles();
+        document.getElementById('extra-headers').value = localStorage.getItem('extra_headers') || '{}';
+        updateExtraHeaders();
+        loadTheme();
+        showHistory();
+      </script>
+    </body>
+    </html>

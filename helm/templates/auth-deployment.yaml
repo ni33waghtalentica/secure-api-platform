@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth-service
+  template:
+    metadata:
+      labels:
+        app: auth-service
+    spec:
+      containers:
+        - name: auth-service
+          image: {{ .Values.authService.image }}
+          imagePullPolicy: {{ .Values.authService.pullPolicy | default "IfNotPresent" }}
+          env:
+            - name: JWT_KEY
+              value: {{ .Values.authService.env.JWT_KEY | quote }}
+            - name: JWT_SECRET
+              value: {{ .Values.authService.env.JWT_SECRET | quote }}
+            - name: DB_PATH
+              value: {{ .Values.authService.env.DB_PATH | quote }}
+            - name: SEED_USER
+              value: {{ .Values.authService.env.SEED_USER | quote }}
+            - name: SEED_USER_PASSWORD
+              value: {{ .Values.authService.env.SEED_USER_PASSWORD | quote }}
+          volumeMounts:
+            - name: auth-pvc
+              mountPath: {{ .Values.authService.pvc.mountPath }}
+      volumes:
+        - name: auth-pvc
+          persistentVolumeClaim:
+            claimName: auth-pvc

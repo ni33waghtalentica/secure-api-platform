@@ -1,0 +1,56 @@
+_format_version: "3.0"
+_transform: true
+
+services:
+  - name: auth-service
+    url: http://auth-service.default.svc.cluster.local:8000
+    routes:
+      - name: login
+        paths: ["/login"]
+        methods: ["POST"]
+        strip_path: false
+      - name: users
+        paths: ["/users"]
+        methods: ["GET"]
+        strip_path: false
+        plugins:
+          - name: jwt
+            config:
+              claims_to_verify: ["exp"]
+      - name: verify
+        paths: ["/verify"]
+        methods: ["GET"]
+        strip_path: false
+      - name: health
+        paths: ["/health"]
+        methods: ["GET"]
+        strip_path: false
+
+consumers:
+  - username: auth-consumer
+    jwt_secrets:
+      - key: ${JWT_KEY}
+        secret: ${JWT_SECRET}
+
+plugins:
+  - name: rate-limiting
+    config:
+      minute: 10
+      policy: local
+      limit_by: ip
+  - name: ip-restriction
+    config:
+      allow:
+        - 10.0.0.0/8
+        - 192.168.0.0/16
+  - name: pre-function
+    config:
+      access:
+        - |
+          local path = kong.request.get_path()
+          local ip = kong.client.get_ip()
+          kong.service.request.set_header("X-Platform", "kong-internal")
+          kong.log.info(string.format('{"path":"%s","ip":"%s"}', path, ip))
+      header_filter:
+        - |
+          kong.response.set_header("X-Gateway", "kong")

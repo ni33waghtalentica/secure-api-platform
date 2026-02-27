@@ -1,0 +1,113 @@
+{
+  "info": {
+    "name": "Kong API Platform - Test Console",
+    "description": "Collection to test health, login, verify, users and rate limiting for the Kong API Platform (local).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8000" },
+    { "key": "jwt", "value": "" },
+    { "key": "new_username", "value": "testuser_{{timestamp}}" }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{base_url}}/health" }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Health responds 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Body contains status', function () { var j = pm.response.json(); pm.expect(j).to.have.property('status'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Login (admin)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"username\": \"admin\", \"password\": \"admin123\"}"
+        },
+        "url": { "raw": "{{base_url}}/login" }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Login returns 200', function () { pm.response.to.have.status(200); });",
+              "var json = pm.response.json();",
+              "if (json && json.access_token) { pm.environment.set('jwt', json.access_token); pm.test('Saved token to environment', function(){pm.expect(json.access_token).to.be.a('string');}); } else { pm.test('access_token present', function(){pm.expect(json).to.have.property('access_token');}); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Login - Wrong Password",
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": { "mode": "raw", "raw": "{\"username\": \"admin\", \"password\": \"wrongpassword\"}" },
+        "url": { "raw": "{{base_url}}/login" }
+      },
+      "event": [ { "listen": "test", "script": { "exec": [ "pm.test('Expect non-2xx for wrong password', function () { pm.expect(pm.response.code).to.be.above(199); });" ] } } ]
+    },
+    {
+      "name": "Verify (with token)",
+      "request": {
+        "method": "GET",
+        "header": [ { "key": "Authorization", "value": "Bearer {{jwt}}" } ],
+        "url": { "raw": "{{base_url}}/verify" }
+      },
+      "event": [ { "listen": "test", "script": { "exec": [ "pm.test('Verify returns 200', function(){ pm.response.to.have.status(200); });", "var j = pm.response.json(); pm.test('Verify payload present', function(){ pm.expect(j).to.have.property('subject'); });" ] } } ]
+    },
+    {
+      "name": "Users - Get (with token)",
+      "request": {
+        "method": "GET",
+        "header": [ { "key": "Authorization", "value": "Bearer {{jwt}}" } ],
+        "url": { "raw": "{{base_url}}/users" }
+      },
+      "event": [ { "listen": "test", "script": { "exec": [ "pm.test('Users returns 200', function(){ pm.response.to.have.status(200); });", "var j = pm.response.json(); pm.test('Users payload', function(){ pm.expect(j).to.have.property('users'); });" ] } } ]
+    },
+    {
+      "name": "Users - Get (no token)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{base_url}}/users" }
+      },
+      "event": [ { "listen": "test", "script": { "exec": [ "pm.test('Expect 401 or 403 when no token', function(){ pm.expect(pm.response.code).to.be.oneOf([401,403]); });" ] } } ]
+    },
+    {
+      "name": "Create User & Auto-Login (admin required)",
+      "event": [ { "listen": "prerequest", "script": { "exec": [ "// generate unique username for this run", "pm.environment.set('new_username', 'pm_user_' + Math.floor(Date.now()/1000));" ] } } ],
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" }, { "key": "Authorization", "value": "Bearer {{jwt}}" } ],
+        "body": { "mode": "raw", "raw": "{\"username\": \"{{new_username}}\", \"password\": \"testpass123\"}" },
+        "url": { "raw": "{{base_url}}/users" }
+      },
+      "event": [ { "listen": "test", "script": { "exec": [ "pm.test('Create user returns 200 or 201', function(){ pm.expect(pm.response.code).to.be.oneOf([200,201]); });", "var j = pm.response.json(); if (j.access_token) { pm.environment.set('jwt', j.access_token); pm.test('Auto-logged in and token saved', function(){ pm.expect(j.access_token).to.be.a('string'); }); }" ] } } ]
+    },
+    {
+      "name": "Health (rate-limit check)",
+      "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/health" } },
+      "event": [ { "listen": "test", "script": { "exec": [ "pm.test('Health status 200 or 429 if over limit', function(){ pm.expect(pm.response.code).to.be.oneOf([200,429]); });", "console.log('RateLimit headers:', pm.response.headers.get('X-RateLimit-Remaining-Minute'), pm.response.headers.get('X-RateLimit-Limit-Minute'))" ] } } ]
+    }
+  ]
+}

@@ -1,0 +1,68 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ddos-nginx-config
+data:
+  nginx.conf: |
+    worker_processes  1;
+
+    events { worker_connections  1024; }
+
+    http {
+      limit_req_zone $binary_remote_addr zone=perip:10m rate=20r/s;
+      limit_conn_zone $binary_remote_addr zone=addr:10m;
+
+      server {
+        listen 8080;
+
+        limit_conn addr 20;
+        limit_req zone=perip burst=40 nodelay;
+
+        location / {
+          proxy_pass http://kong.default.svc.cluster.local:8000;
+          proxy_set_header Host $host;
+          proxy_set_header X-Real-IP $remote_addr;
+          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        }
+      }
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ddos-nginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ddos-nginx
+  template:
+    metadata:
+      labels:
+        app: ddos-nginx
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.27
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: nginx-config
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
+      volumes:
+        - name: nginx-config
+          configMap:
+            name: ddos-nginx-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ddos-proxy
+spec:
+  selector:
+    app: ddos-nginx
+  ports:
+    - port: 8080
+      targetPort: 8080
+  type: ClusterIP

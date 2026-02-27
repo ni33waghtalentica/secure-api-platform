@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth-service
+  template:
+    metadata:
+      labels:
+        app: auth-service
+    spec:
+      containers:
+        - name: auth-service
+          image: kumarmangalam97/auth-service:latest
+          env:
+            - name: DB_PATH
+              value: /data/app.db
+            - name: JWT_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: kong-jwt
+                  key: JWT_KEY
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: kong-jwt
+                  key: JWT_SECRET
+            - name: SEED_USER_USERNAME
+              value: admin
+            - name: SEED_USER_PASSWORD
+              value: admin123
+          ports:
+            - containerPort: 8000
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: auth-service-pvc
